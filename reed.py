@@ -5,8 +5,9 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC  
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.common.action_chains import ActionChains
+from selenium.common.exceptions import NoSuchElementException
+
 
 #set up drivers
 driver = webdriver.Chrome(ChromeDriverManager().install())
@@ -49,15 +50,16 @@ desc = []
 salary = []
 location = []
 kws = ["Machine Learning Engineer", "Junior Machine Learning Engineer"]
+exact_match = True
 
 #go through all pages
-while(driver.find_element_by_id("nextPage").get_attribute("href") != None):
+while(True):
     
     #get all ads on given page
-    for i in range(0, len(get_links(True, kws))):
+    for i in range(0, len(get_links(exact_match, kws))):
         
         #this needs to be done every iteration for some reason
-        links = get_links(True, kws)
+        links = get_links(exact_match, kws)
         if links[i] not in seen:
             
             #scroll down to ad
@@ -81,10 +83,14 @@ while(driver.find_element_by_id("nextPage").get_attribute("href") != None):
             driver.back()
             driver.implicitly_wait(5)
        
-    #go to next page     
+    #go to next page, if there is one  
     driver.find_element_by_id("nextPage").click()
     sleep(2)
-
+    try:
+        driver.find_element_by_id("nextPage")
+    except NoSuchElementException:
+        print("No more pages left, scrape finished, found", len(desc),"jobs.")
+        break
     
 
 
