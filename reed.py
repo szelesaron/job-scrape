@@ -111,7 +111,34 @@ def plot_location(location):
     plt.show()
     
     
-plot_location(location)
+def plot_salary(salary):
+    plt.style.use("ggplot")
+    pay = [] 
+    for s in salary:
+        if "annum" in s:
+            num_list = [x for x in s.split(" ")]
+            pay_temp = 0
+            for n in num_list:
+                res = ''.join(e for e in n if e.isalnum())
+                if res.isdigit():
+                    pay_temp += int(res)
+
+            pay.append(pay_temp/2)
+    plt.figure(figsize=(10,5))
+    plt.hist(pay,bins = int(len(pay)/5), color = "green")
+    plt.title("Salary")
+    plt.xlabel("Salary in GBP")
+    plt.show()
+    
+    
+    
+plot_location(location)   
+plot_salary(salary)
+
+
+
+
+
 
 
 
