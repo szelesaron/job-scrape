@@ -8,6 +8,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.common.exceptions import NoSuchElementException
 import matplotlib.pyplot as plt
+from collections import Counter
 
 
 #set up drivers
@@ -25,7 +26,7 @@ except:
 
 search = driver.find_element_by_id("main-keywords")
 search.clear()
-search.send_keys("machine learning engineer")
+search.send_keys("receptionist")
 search.send_keys(Keys.RETURN)
   
 
@@ -50,7 +51,7 @@ seen = set()
 desc = []
 salary = []
 location = []
-kws = ["Machine Learning Engineer"]
+kws = ["Receptionist"]
 exact_match = False
 
 
@@ -73,8 +74,13 @@ while(True):
             sleep(2)
             links[i].click()
             
-            #get data from job
-            desc.append(driver.find_element_by_class_name("description").text)
+  
+            try:          
+                #get data from job
+                desc.append(driver.find_element_by_class_name("description").text)
+            except:
+                print("Promoted job found.")
+                
             try:
                 salary.append(driver.find_element_by_xpath('//*[@id="content"]/div[1]/div[2]/article/div/div[2]/div/div[2]/div/div[1]/span/span[1]').text)
                 location.append(driver.find_element_by_xpath('//*[@id="content"]/div[1]/div[2]/article/div/div[2]/div/div[2]/div/div[2]/span[2]/a/span/span').text)
@@ -94,46 +100,60 @@ while(True):
     except NoSuchElementException:
         print("No more pages left, scrape finished, found", len(desc),"jobs.")
         break
-    
-    
+
 def plot_location(location):
     plt.style.use("ggplot")
     labels = list(set(location))
     loc_count = [location.count(x) for x in labels]
-    
+
+    #order them, and only get top 10
     d = dict(zip(labels, loc_count))
     d = dict(sorted(d.items(), key=lambda item: item[1], reverse = True))
+    d = dict(Counter(d).most_common(10))
     
     plt.figure(figsize=(10,5))
     plt.bar(list(d.keys()), list(d.values()), align='center')
     
+    plt.xticks(rotation=45)
     plt.title("Location of jobs")
     plt.show()
     
-    
-def plot_salary(salary):
+#add saalary and time frame (annum, hour, day)
+def plot_salary(salary, time_frame):
     plt.style.use("ggplot")
     pay = [] 
     for s in salary:
-        if "annum" in s:
+        if time_frame in s:
             num_list = [x for x in s.split(" ")]
+            
             pay_temp = 0
             for n in num_list:
                 res = ''.join(e for e in n if e.isalnum())
                 if res.isdigit():
                     pay_temp += int(res)
-
-            pay.append(pay_temp/2)
+            
+            #add the average - adds trailing 0s, needs to be divided by 100
+            if time_frame == "hour":
+                pay.append(pay_temp/200)
+            else:
+                pay.append(pay_temp/2)
+    
+    #plot settings
+    if len(pay) < 5:
+        print("Not enough data for "+ time_frame)
+        return
     plt.figure(figsize=(10,5))
     plt.hist(pay,bins = int(len(pay)/5), color = "green")
     plt.title("Salary")
-    plt.xlabel("Salary in GBP")
+    plt.xlabel("Salary in GBP per " + time_frame)
     plt.show()
     
     
     
 plot_location(location)   
-plot_salary(salary)
+plot_salary(salary, "annum")
+plot_salary(salary, "hour")
+plot_salary(salary, "day")
 
 
 
