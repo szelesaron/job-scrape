@@ -7,6 +7,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.common.exceptions import NoSuchElementException
+import matplotlib.pyplot as plt
 
 
 #set up drivers
@@ -49,8 +50,10 @@ seen = set()
 desc = []
 salary = []
 location = []
-kws = ["Machine Learning Engineer", "Junior Machine Learning Engineer"]
-exact_match = True
+kws = ["Machine Learning Engineer"]
+exact_match = False
+
+
 
 #go through all pages
 while(True):
@@ -92,6 +95,23 @@ while(True):
         print("No more pages left, scrape finished, found", len(desc),"jobs.")
         break
     
+    
+def plot_location(location):
+    plt.style.use("ggplot")
+    labels = list(set(location))
+    loc_count = [location.count(x) for x in labels]
+    
+    d = dict(zip(labels, loc_count))
+    d = dict(sorted(d.items(), key=lambda item: item[1], reverse = True))
+    
+    plt.figure(figsize=(10,5))
+    plt.bar(list(d.keys()), list(d.values()), align='center')
+    
+    plt.title("Location of jobs")
+    plt.show()
+    
+    
+plot_location(location)
 
 
 
