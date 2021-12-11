@@ -14,6 +14,8 @@ import numpy as np
 
 
 POSITION = "Machine Learning Engineer"
+EXACT_MATCH = False
+
 
 
 
@@ -37,9 +39,9 @@ search.send_keys(Keys.RETURN)
   
 
 #get links based on keywords
-def get_links(exact_match, keywords):
+def get_links(EXACT_MATCH, keywords):
     results = driver.find_element_by_id("server-results")
-    if(not exact_match):
+    if(not EXACT_MATCH):
         links = results.find_elements_by_partial_link_text(keywords[0])
         for i in range(1, len(keywords)):
             links.extend(results.find_elements_by_partial_link_text(keywords[i]))
@@ -59,23 +61,18 @@ skills = []
 salary = []
 location = []
 kws = [POSITION]
-exact_match = False
 
 
-#####TEST AREA
-
-
-#####
 
 
 #go through all pages
 while(True):
     
     #get all ads on given page
-    for i in range(0, len(get_links(exact_match, kws))):
+    for i in range(0, len(get_links(EXACT_MATCH, kws))):
         
         #this needs to be done every iteration for some reason
-        links = get_links(exact_match, kws)
+        links = get_links(EXACT_MATCH, kws)
         
         #if anything bad happens, skip
         try:
@@ -95,13 +92,14 @@ while(True):
                     for x in skill_list:
                         skills.append(x.text.lower())
                 except:
-                    print("Moving onto description.")
-                    #if no skill list, get desciption
-                    try:          
-                        #get data from job
-                        desc.append(driver.find_element_by_class_name("description").text)
-                    except:
-                        print("Promoted job or missing ad found.")
+                    print("No skill for job")
+                    
+                #get desciption
+                try:          
+                    #get data from job
+                    desc.append(driver.find_element_by_class_name("description").text)
+                except:
+                    print("Promoted job or missing ad found.")
                     
                 try:
                     salary.append(driver.find_element_by_xpath('//*[@id="content"]/div[1]/div[2]/article/div/div[2]/div/div[2]/div/div[1]/span/span[1]').text)
@@ -233,14 +231,24 @@ def plot_skills(skills, min_skill_count):
 
 
 
+#check for words or phrases in job descriptions
+def check_for_words(words):
+    c = 0
+    for i in desc:
+        for word in words:
+            if word.lower() in i.lower():
+                c+=1
+    print(c/len(desc)*100, "% of jobs mention", words)  
+
+
+
+#show things
 plot_location(location)   
 plot_salary(salary, "annum")
 plot_salary(salary, "hour")
 plot_salary(salary, "day")
-plot_skills(skills, 3)
-
-
-
+plot_skills(skills, 2)
+check_for_words(["msc","masters"])
 
 
 
