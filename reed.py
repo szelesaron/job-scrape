@@ -9,20 +9,19 @@ from selenium.webdriver.common.action_chains import ActionChains
 from selenium.common.exceptions import NoSuchElementException
 import matplotlib.pyplot as plt
 from collections import Counter
+from selenium.webdriver.chrome.service import Service
 import numpy as np
 
 
 #----define these----
 SEARCH_TERM = "Machine Learning Engineer"
-EXACT_MATCH = True
-KEYWORDS_IN_JOB_TITLE = ["Machine Learning Engineer"]
+KEYWORDS_IN_JOB_TITLE = ["Machine Learning"]
+EXACT_MATCH = False
 #--------------------
 
 
 
-
 #set up drivers
-from selenium.webdriver.chrome.service import Service
 s=Service(ChromeDriverManager().install())
 driver = webdriver.Chrome(service=s)
 driver.get('https://www.reed.co.uk')
@@ -247,7 +246,7 @@ def check_for_words(words):
 
 #show things
 print("\n----------RESULTS----------")
-print(len(desc), "jobs found.\n")
+print(len(desc), "jobs found for", SEARCH_TERM)
 
 print("---Location info---")
 plot_location(location)   
@@ -259,7 +258,7 @@ plot_salary(salary, "day")
 
 print("---Skills info---")
 plot_skills(skills, 3)
-check_for_words(["state"])
+check_for_words(["tensorflow"])
 
 
 
