@@ -12,15 +12,19 @@ from collections import Counter
 import numpy as np
 
 
-
-POSITION = "Machine Learning Engineer"
-EXACT_MATCH = False
+#----define these----
+SEARCH_TERM = "Machine Learning Engineer"
+EXACT_MATCH = True
+KEYWORDS_IN_JOB_TITLE = ["Machine Learning Engineer"]
+#--------------------
 
 
 
 
 #set up drivers
-driver = webdriver.Chrome(ChromeDriverManager().install())
+from selenium.webdriver.chrome.service import Service
+s=Service(ChromeDriverManager().install())
+driver = webdriver.Chrome(service=s)
 driver.get('https://www.reed.co.uk')
 sleep(2)
 
@@ -32,24 +36,24 @@ try:
 except:
     print("Error with popup.")
 
-search = driver.find_element_by_id("main-keywords")
+search = driver.find_element(By.ID, "main-keywords")
 search.clear()
-search.send_keys(POSITION)
+search.send_keys(SEARCH_TERM)
 search.send_keys(Keys.RETURN)
   
 
 #get links based on keywords
 def get_links(EXACT_MATCH, keywords):
-    results = driver.find_element_by_id("server-results")
+    results = driver.find_element(By.ID, "server-results")
     if(not EXACT_MATCH):
-        links = results.find_elements_by_partial_link_text(keywords[0])
+        links = results.find_elements(By.PARTIAL_LINK_TEXT, keywords[0])
         for i in range(1, len(keywords)):
-            links.extend(results.find_elements_by_partial_link_text(keywords[i]))
+            links.extend(results.find_elements(By.PARTIAL_LINK_TEXT, keywords[i]))
         return links
     else:
-        links = results.find_elements_by_link_text(keywords[0])
+        links = results.find_elements(By.LINK_TEXT, keywords[0])
         for i in range(1, len(keywords)):
-            links.extend(results.find_elements_by_link_text(keywords[i]))
+            links.extend(results.find_elements(By.LINK_TEXT, keywords[i]))
         return links
 
 
@@ -60,7 +64,6 @@ desc = []
 skills = []
 salary = []
 location = []
-kws = [POSITION]
 
 
 
@@ -69,10 +72,10 @@ kws = [POSITION]
 while(True):
     
     #get all ads on given page
-    for i in range(0, len(get_links(EXACT_MATCH, kws))):
+    for i in range(0, len(get_links(EXACT_MATCH, KEYWORDS_IN_JOB_TITLE))):
         
         #this needs to be done every iteration for some reason
-        links = get_links(EXACT_MATCH, kws)
+        links = get_links(EXACT_MATCH, KEYWORDS_IN_JOB_TITLE)
         
         #if anything bad happens, skip
         try:
@@ -83,12 +86,12 @@ while(True):
                 actions.move_to_element(links[i]).perform()
                 
                 #click and wait
-                sleep(2)
+                driver.implicitly_wait(3)
                 links[i].click()
                 
                 try:
                     #get skills and add them to list
-                    skill_list = driver.find_element_by_class_name("skills").find_elements_by_tag_name("li")
+                    skill_list = driver.find_element(By.CLASS_NAME, "skills").find_elements(By.TAG_NAME, "li")
                     for x in skill_list:
                         skills.append(x.text.lower())
                 except:
@@ -97,31 +100,31 @@ while(True):
                 #get desciption
                 try:          
                     #get data from job
-                    desc.append(driver.find_element_by_class_name("description").text)
+                    desc.append(driver.find_element(By.CLASS_NAME, "description").text)
                 except:
                     print("Promoted job or missing ad found.")
                     
                 try:
-                    salary.append(driver.find_element_by_xpath('//*[@id="content"]/div[1]/div[2]/article/div/div[2]/div/div[2]/div/div[1]/span/span[1]').text)
-                    location.append(driver.find_element_by_xpath('//*[@id="content"]/div[1]/div[2]/article/div/div[2]/div/div[2]/div/div[2]/span[2]/a/span/span').text)
+                    salary.append(driver.find_element(By.XPATH, '//*[@id="content"]/div[1]/div[2]/article/div/div[2]/div/div[2]/div/div[1]/span/span[1]').text)
+                    location.append(driver.find_element(By.XPATH, '//*[@id="content"]/div[1]/div[2]/article/div/div[2]/div/div[2]/div/div[2]/span[2]/a/span/span').text)
                 except:
                     print("No salary or location")
                     
                 #go back and add visited to seen
                 seen.add(links[i])
                 driver.back()
-                driver.implicitly_wait(5)
+                driver.implicitly_wait(3)
         except:
             continue
         
     #go to next page, if there is one  
-    driver.find_element_by_id("nextPage").click()
+    driver.find_element(By.ID, "nextPage").click()
     sleep(2)
     
     try:
-        driver.find_element_by_id("nextPage")
+        driver.find_element(By.ID, "nextPage")
     except NoSuchElementException:
-        print("No more pages left, scrape finished, found", len(desc),"jobs.")
+        print("No more pages left, scrape finished.")
         break
 
 
@@ -243,13 +246,20 @@ def check_for_words(words):
 
 
 #show things
+print("\n----------RESULTS----------")
+print(len(desc), "jobs found.\n")
+
+print("---Location info---")
 plot_location(location)   
+
+print("---Salary info---")
 plot_salary(salary, "annum")
 plot_salary(salary, "hour")
 plot_salary(salary, "day")
-plot_skills(skills, 2)
-check_for_words(["msc","masters"])
 
+print("---Skills info---")
+plot_skills(skills, 3)
+check_for_words(["state"])
 
 
 
