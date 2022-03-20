@@ -9,8 +9,12 @@ from selenium.webdriver.common.action_chains import ActionChains
 from selenium.common.exceptions import NoSuchElementException
 import matplotlib.pyplot as plt
 from collections import Counter
+import pickle
 from selenium.webdriver.chrome.service import Service
 import numpy as np
+import os
+
+os.chdir(r"C:\Users\Áron\Desktop\Projects\job-scrape")
 
 
 #----define these----
@@ -258,9 +262,17 @@ plot_salary(salary, "day")
 
 print("---Skills info---")
 plot_skills(skills, 3)
-check_for_words(["tensorflow"])
+
+check_for_words(["phd"])
 
 
+#save plots and descriptions
+with open("test", "wb") as fp:
+    pickle.dump(desc, fp)
+    
+#Load
+#with open("test", "rb") as fp:
+#   b = pickle.load(fp)
 
 
 
